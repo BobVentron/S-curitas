@@ -34,12 +34,14 @@ public class SecuritasServeur {
 					    String parite2 =  message.substring(19, 20).replace("#", "");
 					    
 					    if (ordre.equals("check")) {
+					    	System.out.println("ohohoho1");
 					    	try {
 								if(M.checkmdp(contenu)) {
+									System.out.println("ohohoho2");
 									for (ServeurThread clientThread : this.client) {
 							    		if(clientThread.getUUID().equals(M.getUUID(contenu))) {
 							    			clientThread.printtext("auth");
-							    		}
+							    		}else {System.out.println("ohohoho"+ (M.getUUID(contenu)));}
 							    	}
 								}
 							} catch (UserPasDroitException e) {
@@ -101,6 +103,34 @@ public class SecuritasServeur {
     	}
     }
     
+    public void getinfouser(String UUID) throws IOException {
+    	for (ServeurThread clientThread : this.client) {
+    		if(clientThread.getUUID() == UUID) {
+    			clientThread.printtext("infouser:" + M.getInfoUser());
+    		}
+    	}
+    }
+    
+    public void setdroitSerrure(String param) {
+    	M.setdroitSerrure(param);
+    }
+    
+    public void newEmployer(String UUID, String nom, String prenom, String mdp) {
+    	M.insertEmployer(UUID, nom, prenom, mdp);
+    }
+    
+    public void paramEmployer(String bool, String uuid) {
+    	M.paramEmployer(bool, uuid);
+    }
+    
+    public ArrayList<ServeurThread> getClient() {
+		return client;
+	}
+
+	public void setClient(ArrayList<ServeurThread> client) {
+		this.client = client;
+	}
+    
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, SQLException {
         int numPort = 10001;
         String serialPortName = "COM7"; 
@@ -114,11 +144,5 @@ public class SecuritasServeur {
         serveur.runServeur(numPort, serialPortName, baudRate, driverClassName, databaseURL, username, password);
     }
 
-	public ArrayList<ServeurThread> getClient() {
-		return client;
-	}
-
-	public void setClient(ArrayList<ServeurThread> client) {
-		this.client = client;
-	}
+	
 }

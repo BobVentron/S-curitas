@@ -57,6 +57,59 @@ public class ServeurThread  extends Thread {
 					if (requete.equals("getautorisations")) {
 						this.serveur.getautorisations(this.UUID);
 					}
+					if (requete.equals("getinfouser")) {
+						this.serveur.getinfouser(this.UUID);
+					}
+					if (requete.startsWith("paramSerrure")) {
+						this.serveur.setdroitSerrure(requete.replace("paramSerrure", ""));
+					}
+					if (requete.startsWith("newEmployer")) {
+						String[] dataParts = requete.split(",");
+
+
+				        String uuid = "";
+				        String name = "";
+				        String firstName = ""; 
+				        String password = "";
+
+
+				        for (String part : dataParts) {
+				            String[] keyValue = part.split(":");
+				            if (keyValue.length == 2) {
+				                switch (keyValue[0]) {
+				                    case "newEmployerUUID":
+				                        uuid = keyValue[1];
+				                        break;
+				                    case "Nom":
+				                        name = keyValue[1];
+				                        break;
+				                    case "Prénom":
+				                        firstName = keyValue[1];
+				                        break;
+				                    case "MDP":
+				                        password = keyValue[1];
+				                        break;
+				                    default:
+
+				                        break;
+				                }
+				            }
+				        }
+				        
+				        this.serveur.newEmployer(uuid, name, firstName, password);
+					}
+					if (requete.startsWith("paramEmployer")) {
+			        	int plusIndex = requete.indexOf('+');
+
+
+			            String paramEmployer = requete.substring(0, plusIndex);
+			            String uuid1 = requete.substring(plusIndex + 1);
+			            String trueOrFalse = paramEmployer.substring("paramEmployer".length());
+			            
+			            this.serveur.paramEmployer(trueOrFalse, uuid1);
+			            System.out.println("uuid : " + uuid1);
+			        }
+
 				}
 				
 			}
