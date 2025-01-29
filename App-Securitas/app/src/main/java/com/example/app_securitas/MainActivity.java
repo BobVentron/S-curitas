@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Démarrer la connexion
         Executors.newSingleThreadExecutor().submit(() -> {
-            String serverIP = "192.168.1.158";  // Adresse IP du serveur
+            String serverIP = "192.168.157.117";  // Adresse IP du serveur
             int serverPort = 10001;            // Port du serveur
             clientSocket.connectToServer(serverIP, serverPort);
 

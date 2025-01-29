@@ -13,6 +13,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class adminInterface extends AppCompatActivity {
 
@@ -26,6 +30,67 @@ public class adminInterface extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ClientSocket clientSocket = SocketManager.getInstance().getClientSocket();
+                clientSocket.sendMessage("getinfouser");
+            }
+        }).start();
+
+        ClientSocket clientSocket = SocketManager.getInstance().getClientSocket();
+        if (clientSocket == null) {
+            Toast.makeText(this, "Erreur : ClientSocket est null.", Toast.LENGTH_SHORT).show();
+            return; // Quittez la méthode pour éviter un crash
+        }
+
+        List<List<String>> resultList = new ArrayList<>();
+
+        clientSocket.setOnMessageReceivedListener(message -> runOnUiThread(() -> {
+            if (message.equals("auth")) {
+                navigateToAuthentification(); // Navigue vers une nouvelle activité
+            }
+            if (message.startsWith("infouser:")) {
+                String infouser = message.replace("infouser:", "");
+                String[] blocks = infouser.split("\\+");
+                LinearLayout employeeListContainer = findViewById(R.id.employeeListContainer); // Conteneur des boutons
+
+                for (String block : blocks) {
+                    // Découper les informations
+                    String[] parts = block.split("/");
+                    if (parts.length == 3) { // Vérifie le format UUID/Nom/Prénom
+                        String uuid = parts[0];
+                        String nom = parts[1];
+                        String prenom = parts[2];
+
+                        // Ajouter à la liste (optionnel si besoin de conserver les données ailleurs)
+                        resultList.add(Arrays.asList(uuid, nom, prenom));
+
+                        // Créer et configurer le bouton
+                        Button button = new Button(this);
+                        button.setText(prenom + " " + nom);
+                        button.setLayoutParams(new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        ));
+
+                        // Ajouter un écouteur qui transmet l'UUID à l'activité suivante
+                        button.setOnClickListener(v -> {
+                            Intent intent = new Intent(adminInterface.this, paramEmploye.class);
+                            intent.putExtra("employeeUUID", uuid);
+                            intent.putExtra("nom", nom);
+                            intent.putExtra("prenom", prenom);
+                            startActivity(intent);
+                        });
+
+                        // Ajouter le bouton au conteneur
+                        employeeListContainer.addView(button);
+                    }
+                }
+            }
+        }));
+
 
 
         Button buttonParamSerrure = findViewById(R.id.paramSerrure);
@@ -42,33 +107,6 @@ public class adminInterface extends AppCompatActivity {
             }
         });
 
-        LinearLayout employeeListContainer = findViewById(R.id.employeeListContainer);
-        String[] employeeNames = {
-                "Jean Dupont", "Marie Curie", "Albert Einstein",
-                "Isaac Newton", "Galileo Galilei", "Nikola Tesla",
-                "Thomas Edison", "Leonardo da Vinci", "Stephen Hawking",
-                "Ada Lovelace", "Grace Hopper", "Alan Turing",
-                "Charles Babbage", "Johannes Kepler", "Michael Faraday",
-                "James Clerk Maxwell", "Richard Feynman", "Marie Curie",
-                "Rosalind Franklin", "Hedy Lamarr", "Katherine Johnson"
-        };
-
-
-        for (String employeeName : employeeNames) {
-            Button button = new Button(this);
-            button.setText(employeeName);
-            button.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
-            button.setOnClickListener(v -> {
-                Intent intent = new Intent(adminInterface.this, paramEmploye.class);
-                intent.putExtra("employeeName", employeeName);
-                startActivity(intent);
-            });
-            employeeListContainer.addView(button);
-        }
-        
     }
 
     private void navigateToparamSerrure() {
@@ -78,6 +116,11 @@ public class adminInterface extends AppCompatActivity {
 
     private void navigateTonewEmploye() {
         Intent intent = new Intent(adminInterface.this, newEmploye.class);
+        startActivity(intent);
+    }
+
+    private void navigateToAuthentification() {
+        Intent intent = new Intent(adminInterface.this, AuthentificationBiometric.class);
         startActivity(intent);
     }
 }
